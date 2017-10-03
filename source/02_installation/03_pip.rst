@@ -4,7 +4,7 @@
 Installation with pip
 =====================
 
-Introduction
+Requirements
 ============
 
 Some requirements are needed to install with pip:
@@ -14,6 +14,9 @@ Some requirements are needed to install with pip:
 * pip
 * setuptools
 
+**Note** that Python 2.6 will very soon be deprecated and Alignak is targeted to run with Python 2.7.
+
+**Note** that those required libraries will not be installed with the Alignak pip package.
 
 Installation
 ============

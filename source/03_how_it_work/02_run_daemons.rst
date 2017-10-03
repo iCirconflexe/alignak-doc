@@ -10,88 +10,181 @@ With packaging
 If you install with packaging (DEB, RPM...), see the package documentation for the best solution to
 configure the daemons and to start/stop Alignak.
 
+Almost surely, the distro packaging will propose to set Alignak daemons as system services...
+
 
 With sources and pip
 ====================
 
 Individual start / stop
 -----------------------
-All the Alignak daemons have a script that can be launched with command line parameters.
+All the Alignak daemons have a script that can be launched with command line parameters. These scripts have been installed by the Python installation process (or the distro packaging).
 
-All the command line parameters are optional because default values are used by the daemon when it starts but it is recommended to use a daemon configuration file with the `-c` option.
+The only necessary configuration to provide to the daemons when they get started is:
 
-Without a configuration file, the daemon will use some default values:
+    - the daemon name for the daemon to be able to find out its configuration
+    - the *alignak.ini* file installed by the setup process (see :ref:`installation/what_is_it`).
 
-    - use a generic prefix for its files except if a daemon name is provided on the command line. The prefix is the daemon name if it is provided, else it is the daemon type with an ending `d` character (eg. brokerd for a broker)
-    - the default daemon name is the daemon type (eg. *broker* for a broker daemon)
-    - create its pid (*prefix.pid*) and log (*prefix.log*) file in the current working directory.
+Where to find the *alignak.ini* file:
+
+   - in the */usr/local/etc/alignak* or (*/etc/alignak*) directory
+
+The directory where this file is located is the Python prefix of your system.
+
+Except for the environment file and the daemon name, all other command line parameters are optional because default values are used by the daemon when it starts.
+
+The daemon will get its configuration parameters from the *alignak.ini* environment file in the section named as *[daemon.broker-name]*.
+The daemon will also use some default values if they are not defined:
+
+    - it will create its pid (*daemon-name.pid*) and log (*daemon-name.log*) file in the current working directory.
     - It will also use a default port to listen to the other daemons (arbiter: 7770, scheduler: 7768, broker: 7772, poller: 7771, reactionner: 7769, receiver: 7773).
-
-Other command line parameters are available, but they are really rarely used ;)
 
 For all the daemons (broker, poller, receiver, reactionner, scheduler)::
 
-   $ alignak-broker -h
-   usage: alignak-broker [-h] [-v] [-n DAEMON_NAME] [-c CONFIG_FILE] [-d] [-r]
-                         [-f DEBUG_FILE] [-p PORT] [-l LOCAL_LOG]
+    $ alignak-broker -h
+    usage: alignak-broker [-h] [-v] -n DAEMON_NAME [-c CONFIG_FILE] [-d] [-r]
+                          [-f DEBUG_FILE] [-o HOST] [-p PORT] [-l LOG_FILENAME]
+                          [-i PID_FILENAME] -e ENV_FILE
 
-   optional arguments:
-     -h, --help            show this help message and exit
-     -v, --version         show program's version number and exit
-     -n DAEMON_NAME, --name DAEMON_NAME
-                           Daemon unique name. Must be unique for the same daemon
-                           type.
-     -c CONFIG_FILE, --config CONFIG_FILE
-                           Daemon configuration file
-     -d, --daemon          Run as a daemon
-     -r, --replace         Replace previous running daemon
-     -f DEBUG_FILE, --debugfile DEBUG_FILE
-                           File to dump debug logs
-     -p PORT, --port PORT  Port used by the daemon
-     -l LOCAL_LOG, --local_log LOCAL_LOG
-                           File to use for daemon log
+    optional arguments:
+      -h, --help            show this help message and exit
+      -v, --version         show program's version number and exit
+      -n DAEMON_NAME, --name DAEMON_NAME
+                            Daemon unique name. Must be unique for the same daemon
+                            type.
+      -c CONFIG_FILE, --config CONFIG_FILE
+                            Daemon configuration file. Deprecated parameter, do
+                            not use it anymore!
+      -d, --daemon          Run as a daemon. Fork the launched process and
+                            daemonize.
+      -r, --replace         Replace previous running daemon if any pid file is
+                            found.
+      -f DEBUG_FILE, --debugfile DEBUG_FILE
+                            File to dump debug logs. Not of any interest, will be
+                            deprecated!
+      -o HOST, --host HOST  Host interface used by the daemon. Default is 0.0.0.0
+                            (all interfaces).
+      -p PORT, --port PORT  Port used by the daemon. Default is set according to
+                            the daemon type.
+      -l LOG_FILENAME, --log_file LOG_FILENAME
+                            File used for the daemon log. Set as empty to disable
+                            log file.
+      -i PID_FILENAME, --pid_file PID_FILENAME
+                            File used to store the daemon pid
+      -e ENV_FILE, --environment ENV_FILE
+                            Alignak global environment file. This file defines all
+                            the daemons of this Alignak instance and their
+                            configuration. Each daemon configuration is defined in
+                            a specifc section of this file.
 
 
-The arbiter is slightly different because it needs to receive the monitoring configuration that is to be loaded::
+The arbiter is slightly different because it manages some extra parameters::
 
-   $ alignak-arbiter -h
-   usage: alignak-arbiter [-h] [-v] -a MONITORING_FILES [-V] [-k ALIGNAK_NAME]
-                          [-n DAEMON_NAME] [-c CONFIG_FILE] [-d] [-r]
-                          [-f DEBUG_FILE] [-p PORT] [-l LOCAL_LOG]
+    $ alignak-arbiter -h
+    usage: alignak-arbiter [-h] [-v] [-a MONITORING_FILES] [-V] [-k ALIGNAK_NAME]
+                           [-n DAEMON_NAME] [-c CONFIG_FILE] [-d] [-r]
+                           [-f DEBUG_FILE] [-o HOST] [-p PORT] [-l LOG_FILENAME]
+                           [-i PID_FILENAME] -e ENV_FILE
 
-   optional arguments:
-     -h, --help            show this help message and exit
-     -v, --version         show program's version number and exit
-     -a MONITORING_FILES, --arbiter MONITORING_FILES
-                           Monitored configuration file(s), (multiple -a can be
-                           used, and they will be concatenated to make a global
-                           configuration file)
-     -V, --verify-config   Verify configuration file(s) and exit
-     -k ALIGNAK_NAME, --alignak-name ALIGNAK_NAME
-                           Set the name of the arbiter to pick in the
-                           configuration files For a spare arbiter, this
-                           parameter must contain its name!
-     -n DAEMON_NAME, --name DAEMON_NAME
-                           Daemon unique name. Must be unique for the same daemon
-                           type.
-     -c CONFIG_FILE, --config CONFIG_FILE
-                           Daemon configuration file
-     -d, --daemon          Run as a daemon
-     -r, --replace         Replace previous running daemon
-     -f DEBUG_FILE, --debugfile DEBUG_FILE
-                           File to dump debug logs
-     -p PORT, --port PORT  Port used by the daemon
-     -l LOCAL_LOG, --local_log LOCAL_LOG
-                           File to use for daemon log
+    optional arguments:
+      -h, --help            show this help message and exit
+      -v, --version         show program's version number and exit
+      -a MONITORING_FILES, --arbiter MONITORING_FILES
+                            Monitored configuration file(s). This option is still
+                            available but is is preferable to declare the
+                            monitored objects files in the alignak-configuration
+                            section of the environment file specified with the -e
+                            option.Multiple -a can be used, and they will be
+                            concatenated to make a global configuration file.
+      -V, --verify-config   Verify the configuration file(s) and exit
+      -k ALIGNAK_NAME, --alignak-name ALIGNAK_NAME
+                            Set the name of the Alignak instance. If not set, the
+                            arbiter name will be used in place. Note that if an
+                            alignak_name variable is defined in the configuration,
+                            it will overwrite this parameter.For a spare arbiter,
+                            this parameter must contain its name!
+      -n DAEMON_NAME, --name DAEMON_NAME
+                            Daemon unique name. Must be unique for the same daemon
+                            type.
+      -c CONFIG_FILE, --config CONFIG_FILE
+                            Daemon configuration file. Deprecated parameter, do
+                            not use it anymore!
+      -d, --daemon          Run as a daemon. Fork the launched process and
+                            daemonize.
+      -r, --replace         Replace previous running daemon if any pid file is
+                            found.
+      -f DEBUG_FILE, --debugfile DEBUG_FILE
+                            File to dump debug logs. Not of any interest, will be
+                            deprecated!
+      -o HOST, --host HOST  Host interface used by the daemon. Default is 0.0.0.0
+                            (all interfaces).
+      -p PORT, --port PORT  Port used by the daemon. Default is set according to
+                            the daemon type.
+      -l LOG_FILENAME, --log_file LOG_FILENAME
+                            File used for the daemon log. Set as empty to disable
+                            log file.
+      -i PID_FILENAME, --pid_file PID_FILENAME
+                            File used to store the daemon pid
+      -e ENV_FILE, --environment ENV_FILE
+                            Alignak global environment file. This file defines all
+                            the daemons of this Alignak instance and their
+                            configuration. Each daemon configuration is defined in
+                            a specifc section of this file.
 
-With the default installed configuration::
 
-    $ alignak-broker -c /usr/local/etc/alignak/daemons/brokerd.ini
-    $ alignak-scheduler -c /usr/local/etc/alignak/daemons/schedulerd.ini
-    $ alignak-poller -c /usr/local/etc/alignak/daemons/pollerd.ini
-    $ alignak-reactionner -c /usr/local/etc/alignak/daemons/reactionnerd.ini
-    $ alignak-receiver -c /usr/local/etc/alignak/daemons/receiverd.ini
-    $ alignak-arbiter -c /usr/local/etc/alignak/daemons/arbiterd.ini -a /usr/local/etc/alignak/alignak.cfg
+As a sump up:
+
+    All daemons:
+        '-n', "--name": Set the name of the daemon to pick in the configuration files.
+        This allows an arbiter to find its own configuration in the whole Alignak configuration
+        Using this parameter is mandatory for all the daemons except for the arbiter
+        (defaults to arbiter-master). If several arbiters are existing in the
+        configuration this will allow to determine which one is the master/spare.
+        The spare arbiter must be launched with this parameter!
+
+        '-e', '--environment': Alignak environment file - the most important and mandatory
+        parameter to define the name of the alignak.ini configuration file
+
+        '-c', '--config': Daemon configuration file (ini file) - deprecated! This parameter is still managed to alert about its deprecation and to maintain compatibility with former daemon startup scripts.
+        '-d', '--daemon': Run as a daemon
+        '-r', '--replace': Replace previous running daemon
+        '-f', '--debugfile': File to dump debug logs.
+
+        These parameters allow to override the one defined in the Alignak configuration file:
+            '-o', '--host': interface the daemon will listen to
+            '-p', '--port': port the daemon will listen to
+
+            '-l', '--log_file': set the daemon log file name
+            '-i', '--pid_file': set the daemon pid file name
+
+    Arbiter only:
+            "-a", "--arbiter": Monitored configuration file(s),
+            (multiple -a can be used, and they will be concatenated to make a global configuration
+            file) - Note that this parameter is not necessary anymore
+            "-V", "--verify-config": Verify configuration file(s) and exit
+
+
+With the default installed configuration, running all the Alignak daemons is::
+
+    $ alignak-broker -n broker-master -e /usr/local/etc/alignak/alignak.ini
+    $ alignak-scheduler -n scheduler-master -e /usr/local/etc/alignak/alignak.ini
+    $ alignak-poller -n poller-master -e /usr/local/etc/alignak/alignak.ini
+    $ alignak-reactionner -n reactionner-master -e /usr/local/etc/alignak/alignak.ini
+    $ alignak-receiver -n receiver-master -e /usr/local/etc/alignak/alignak.ini
+    $ alignak-arbiter -e /usr/local/etc/alignak/alignak.ini
+
+
+Arbiter daemon exit codes
+-------------------------
+
+The arbiter dameon has some process exit code. Their meaning is:
+
+    - 0: everything ok. Arbiter requested to stop and stopped as expected
+    - 1: provided configuration parsing error detected and the arbiter stopped
+    - 2: some necessary files declared in the configuration are missing
+    - 3: an error was raised during the daemon initialization/fork
+    - 4: running daemons connection problems when checking daemon communication or dispatching the configuration
+
 
 
 Start / stop example scripts
@@ -163,142 +256,30 @@ The `_launch_daemon.sh` script has several command line parameters that may be i
 Alignak.ini configuration file
 ------------------------------
 
-.. note: This part will be moved to the configuration part of this documentation but, as of now, is stays here for a better understanding of the previously described scripts.
+.. note :: This part is only an excerpt of the detailed configuration part of this documentation. See :ref:`core configuration <configuration/core>` for more detailed information.
 
-The *etc/alignak.ini* configuration aims to define the main information about how Alignak is installed on the current system.
+The *etc/alignak.ini* environment file is the main Alignak configuration file. It defines how Alignak is installed / run on the current system and its configuration.
 
 This file will be located by an OS installation package in the Alignak *etc* directory (eg. */etc/alignak/alignak.ini* or */usr/local/etc/alignak/alignak.ini*). This to allow a third party application or alignak extension to locate it easily. Once parsed this file will contain the necessary information about:
 
     - the alignak installation directories
     - the alignak daemons and their configuration
-    - the alignak monitoring configuration file
+    - the alignak monitored configuration
 
-This file is structured as an Ini file:
-
-::
-
-    #
-    # Copyright (C) 2015-2016: Alignak team, see AUTHORS.txt file for contributors
-    #
-    # This file is part of Alignak.
-    #
-    # Alignak is free software: you can redistribute it and/or modify
-    # it under the terms of the GNU Affero General Public License as published by
-    # the Free Software Foundation, either version 3 of the License, or
-    # (at your option) any later version.
-    #
-    # Alignak is distributed in the hope that it will be useful,
-    # but WITHOUT ANY WARRANTY; without even the implied warranty of
-    # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    # GNU Affero General Public License for more details.
-    #
-    # You should have received a copy of the GNU Affero General Public License
-    # along with Alignak.  If not, see <http://www.gnu.org/licenses/>.
-    #
-
-    #
-    # This configuration file is the main Alignak configuration entry point. Each Alignak installer
-    # will adapt the content of this file according to the installation process. This will allow
-    # any Alignak extension or third party application to find where the Alignak components and
-    # files are located on the system.
-    #
-    # ---
-    # This version of the file contains variable that are suitable to run a single node Alignak
-    # with all its daemon using the default configuration existing in the repository.
-    #
-
-    # Main alignak variables:
-    # - BIN is where the launch scripts are located
-    #   (Debian sets to /usr/bin)
-    # - ETC is where we store the configuration files
-    #   (Debian sets to /etc/alignak)
-    # - VAR is where the libraries and plugins files are installed
-    #   (Debian sets to /var/lib/alignak)
-    # - RUN is the daemons working directory and where pid files are stored
-    #   (Debian sets to /var/run/alignak)
-    # - LOG is where we put log files
-    #   (Debian sets to /var/log/alignak)
-    #
-    [DEFAULT]
-    BIN=../alignak/bin
-    ETC=../etc
-    VAR=/tmp
-    RUN=/tmp
-    LOG=/tmp
-
-
-    # We define the name of the 2 main Alignak configuration files.
-    # There may be 2 configuration files because tools like Centreon generate those...
-    [alignak-configuration]
-    # Alignak main configuration file
-    CFG=%(ETC)s/alignak.cfg
-    # Alignak secondary configuration file (none as a default)
-    SPECIFICCFG=
-
-
-    # For each Alignak daemon, this file contains a section with the daemon name. The section
-    # identifier is the corresponding daemon name. This daemon name is built with the daemon
-    # type (eg. arbiter, poller,...) and the daemon name separated with a dash.
-    # This rule ensure that alignak will be able to find all the daemons configuration in this
-    # whatever the number of daemons existing in the configuration
-    #
-    # Each section defines:
-    # - the location of the daemon configuration file
-    # - the daemon launching script
-    # - the location of the daemon pid file
-    # - the location of the daemon debug log file (if any is to be used)
-
-    [arbiter-master]
-    ### ARBITER PART ###
-    PROCESS=alignak-arbiter
-    DAEMON=%(BIN)s/alignak_arbiter.py
-    CFG=%(ETC)s/daemons/arbiterd.ini
-    DEBUGFILE=%(LOG)s/arbiter-debug.log
-
-
-    [scheduler-master]
-    ### SCHEDULER PART ###
-    PROCESS=alignak-scheduler
-    DAEMON=%(BIN)s/alignak_scheduler.py
-    CFG=%(ETC)s/daemons/schedulerd.ini
-    DEBUGFILE=%(LOG)s/scheduler-debug.log
-
-    [poller-master]
-    ### POLLER PART ###
-    PROCESS=alignak-poller
-    DAEMON=%(BIN)s/alignak_poller.py
-    CFG=%(ETC)s/daemons/pollerd.ini
-    DEBUGFILE=%(LOG)s/poller-debug.log
-
-    [reactionner-master]
-    ### REACTIONNER PART ###
-    PROCESS=alignak-reactionner
-    DAEMON=%(BIN)s/alignak_reactionner.py
-    CFG=%(ETC)s/daemons/reactionnerd.ini
-    DEBUGFILE=%(LOG)s/reactionner-debug.log
-
-    [broker-master]
-    ### BROKER PART ###
-    PROCESS=alignak-broker
-    DAEMON=%(BIN)s/alignak_broker.py
-    CFG=%(ETC)s/daemons/brokerd.ini
-    DEBUGFILE=%(LOG)s/broker-debug.log
-
-    [receiver-master]
-    ### RECEIVER PART ###
-    PROCESS=alignak-receiver
-    DAEMON=%(BIN)s/alignak_receiver.py
-    CFG=%(ETC)s/daemons/receiverd.ini
-    DEBUGFILE=%(LOG)s/receiver-debug.log
-
-
-
-.. note :: in future version, the role of this file will be extended to contain all the daemons configuration in place of each file used for each daemon.
+This file is structured as an Ini file and it must be provided to any Alignak daemon involved in the system.
 
 Environment variables
 =====================
 
-Alignak uses some environment variables
+Alignak uses some environment variables. These variables, if defined, always take precedence over the usual configuration parameters.
+
+
+Alignak logger configuration
+----------------------------
+
+An environment variable may exist to define the Alignak logger configuration file:
+    ``ALIGNAK_LOGGER_CONFIGURATION``
+        the Json formatted logger configuration file
 
 
 Alignak internal metrics
@@ -320,15 +301,15 @@ If some environment variables exist the Alignak internal metrics will be logged 
 Log system health
 -----------------
 
-Defining the ``TEST_LOG_MONITORING`` environment variable will make Alignak add some log in the scheduler daemons log files to inform about the system CPU, memory and disk consumption.
+Defining the ``ALIGNAK_SYSTEM_MONITORING`` environment variable will make Alignak add some log in the arbiter daemon log to inform about the system CPU, memory and disk consumption.
 
-On each scheduling loop end, if the report period ia happening, the Alignak scheduler gets the current cpu, memory and disk information from the OS and dumps them to the information log. The dump is formatted as a Nagios plugin output with performance data.
+On each activity loop end, if the report period is happening, the arbiter gets the current cpu, memory and disk information from the OS and dumps them to the information log. The dump is formatted as a Nagios plugin output with performance data.
 
-When this variable is defined, the default report period is set to 5. As such, each 5 scheduling loop, there is a report in the information log. If this variable contains an integer value, this value will define the report period.
+When this variable is defined, the default report period is set to 5. As such, each 5 loop turn, there is a report in the information log. If this variable contains an integer value, this value will define the report period in seconds.
 ::
 
    # Define environment variable
-   setenv TEST_LOG_MONITORING 5
+   setenv ALIGNAK_SYSTEM_MONITORING 5
 
 
    [2017-09-19 15:54:36 CEST] INFO: [alignak.scheduler] Scheduler scheduler-master cpu|'cpu_count'=4 'cpu_1_percent'=42.20% 'cpu_2_percent'=38.40% 'cpu_3_percent'=35.40% 'cpu_4_percent'=48.10% 'cpu_1_user_percent'=37.90% 'cpu_1_nice_percent'=0.00% 'cpu_1_system_percent'=4.20% 'cpu_1_idle_percent'=57.80% 'cpu_1_irq_percent'=0.00% 'cpu_2_user_percent'=31.80% 'cpu_2_nice_percent'=0.00% 'cpu_2_system_percent'=6.10% 'cpu_2_idle_percent'=61.60% 'cpu_2_irq_percent'=0.50% 'cpu_3_user_percent'=31.00% 'cpu_3_nice_percent'=0.00% 'cpu_3_system_percent'=4.20% 'cpu_3_idle_percent'=64.60% 'cpu_3_irq_percent'=0.20% 'cpu_4_user_percent'=38.90% 'cpu_4_nice_percent'=0.00% 'cpu_4_system_percent'=9.20% 'cpu_4_idle_percent'=51.90% 'cpu_4_irq_percent'=0.00%
@@ -343,6 +324,15 @@ When this variable is defined, the default report period is set to 5. As such, e
 
 
 .. note :: this feature allows to have some information about the system load with a running Alignak scheduler.
+
+Log daemon health
+-----------------
+
+Defining the ``ALIGNAK_DAEMON_MONITORING`` environment variable will make each Alignak daemon add some log in the arbiter daemon log to inform about its own CPU and memory consumption.
+
+On each activity loop end, if the report period is happening, the daemon gets its current cpu and memory information from the OS and dumps them to the information log. The dump is formatted as a Nagios plugin output with performance data.
+
+When this variable is defined, the default report period is set to 10. As such, each 10 loop turn, there is a report in the information log. If this variable contains an integer value, this value will define the report period in seconds.
 
 Log Scheduling loop
 -------------------

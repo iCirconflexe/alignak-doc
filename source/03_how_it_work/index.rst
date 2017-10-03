@@ -14,9 +14,10 @@ How does it work
 .. toctree::
    :maxdepth: 1
 
-   daemons
-   run_daemons
-   single_node
-   high_availability
-   load_balancing
+   01_daemons
+   02_run_daemons
+   03_single_node
+   04_high_availability
+   05_load_balancing
+   06_ssl
 

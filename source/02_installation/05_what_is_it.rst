@@ -1,4 +1,4 @@
-.. _Installation/what_is_it:
+.. _installation/what_is_it:
 
 ===========================
 What the installation does?
@@ -43,7 +43,7 @@ If it exists an */etc/default/alignak* or */usr/local/etc/default/alignak* file 
 Second step - updating macro definitions
 ----------------------------------------
 
-All the **.cfg* files located in the *etc/alignak* directory and its sub-directories are parsed to be updated. If they contain a line starting with a macro declaration for one of the script variables, this line is replaced with the variable value. As an example:
+All the * *.cfg* files located in the *etc/alignak* directory and its sub-directories are parsed to be updated. If they contain a line starting with a macro declaration for one of the script variables, this line is replaced with the variable value. As an example:
 ::
 
     #-- Alignak main directories
@@ -64,7 +64,7 @@ This allows to add those macro definition in any configuration located in the Al
 Third step - updating configuration
 -----------------------------------
 
-All the **.in* files located in the *etc/alignak* directory are parsed to be updated. If they contain a line starting with one of the script variables, this line is replaced with the variable value. As an example:
+All the * *.in* files located in the *etc/alignak* directory are parsed to be updated. If they contain a line starting with one of the script variables, this line is replaced with the variable value. As an example:
 ::
 
     [DEFAULT]
@@ -79,4 +79,4 @@ All the **.in* files located in the *etc/alignak* directory are parsed to be upd
 
 This allows to add those macro definition in any configuration located in the Alignak configuration. Currently, only the *etc/alignak/alignak.ini* file and all the files located in the *etc/alignak/daemons* directory are concerned.
 
-**Note:** For the **.ini* files, the script also replaces the *workdir* , *logdir* and *etcdir* variables and they are respectively replaced with *RUN*, *LOG* and *ETC* variables values.
+**Note:** For the * *.ini* files, the script also replaces the *workdir* , *logdir* and *etcdir* variables and they are respectively replaced with *RUN*, *LOG* and *ETC* variables values.
